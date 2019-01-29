@@ -163,25 +163,22 @@ void equalizeLeftAndRightHalves(Mat &faceImg)
     // 3) Combine the left half and right half and whole face together, so that it has a smooth transition.
     for (int y=0; y<h; y++) {
         for (int x=0; x<w; x++) {
-            int v;
+            uchar v;
             if (x < w/4) {          // Left 25%: just use the left face.
                 v = leftSide.at<uchar>(y,x);
-            }
-            else if (x < w*2/4) {   // Mid-left 25%: blend the left face & whole face.
+            }else if (x < w*2/4) {   // Mid-left 25%: blend the left face & whole face.
                 int lv = leftSide.at<uchar>(y,x);
                 int wv = wholeFace.at<uchar>(y,x);
                 // Blend more of the whole face as it moves further right along the face.
                 float f = (x - w*1/4) / (float)(w*0.25f);
-                v = cvRound((1.0f - f) * lv + (f) * wv);
-            }
-            else if (x < w*3/4) {   // Mid-right 25%: blend the right face & whole face.
+                v = static_cast<uchar>(cvRound((1.0f - f) * lv + (f) * wv));
+            }else if (x < w*3/4) {   // Mid-right 25%: blend the right face & whole face.
                 int rv = rightSide.at<uchar>(y,x-midX);
                 int wv = wholeFace.at<uchar>(y,x);
                 // Blend more of the right-side face as it moves further right along the face.
                 float f = (x - w*2/4) / (float)(w*0.25f);
-                v = cvRound((1.0f - f) * wv + (f) * rv);
-            }
-            else {                  // Right 25%: just use the right face.
+                v = static_cast<uchar>(cvRound((1.0f - f) * wv + (f) * rv));
+            }else {                  // Right 25%: just use the right face.
                 v = rightSide.at<uchar>(y,x-midX);
             }
             faceImg.at<uchar>(y,x) = v;
@@ -280,7 +277,10 @@ Mat getPreprocessedFace(Mat &srcImg, int desiredFaceWidth, CascadeClassifier &fa
             // Get the transformation matrix for rotating and scaling the face to the desired angle & size.
             Mat rot_mat = getRotationMatrix2D(eyesCenter, angle, scale);
             // Shift the center of the eyes to be the desired center between the eyes.
-            rot_mat.at<double>(0, 2) += desiredFaceWidth * 0.5f - eyesCenter.x;
+            // Because the cropping is not garrenteed to be centered
+            // there will be a shift between the new and old origins
+            // Note: scale would not cause a shift
+            rot_mat.at<double>(0, 2) += desiredFaceWidth * 0.5f - eyesCenter.x; // TODO: take notes
             rot_mat.at<double>(1, 2) += desiredFaceHeight * DESIRED_LEFT_EYE_Y - eyesCenter.y;
 
             // Rotate and scale and translate the image to the desired angle & size & position!

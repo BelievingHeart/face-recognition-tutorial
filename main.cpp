@@ -410,7 +410,7 @@ void recognizeAndTrainUsingWebcam(VideoCapture &videoCapture, CascadeClassifier 
 
                     // Make a white flash on the face, so the user knows a photo has been taken.
                     Mat displayedFaceRegion = displayedFrame(faceRect);
-                    displayedFaceRegion += CV_RGB(90,90,90);
+                    displayedFaceRegion += Scalar(90,90,90);
 
                     // Keep a copy of the processed face, to compare on next iteration.
                     old_prepreprocessedFace = preprocessedFace;
